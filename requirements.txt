@@ -3,7 +3,10 @@ python-dotenv
 moviepy
 pexels_api
 openai-whisper
-coqui-ai
+TTS
+torch
+torchvision
+torchaudio
 google-auth
 google-auth-oauthlib
 google-auth-httplib2
