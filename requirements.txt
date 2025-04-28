@@ -1,0 +1,11 @@
+requests
+python-dotenv
+moviepy
+pexels_api
+openai-whisper
+coqui-ai
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+google-api-python-client
+Pillow
