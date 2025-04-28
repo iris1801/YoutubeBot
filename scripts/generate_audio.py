@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-import coqui_tts
+from TTS.api import TTS
 
 load_dotenv()
 
@@ -10,7 +10,8 @@ VOICE_NAME = os.getenv("COQUI_VOICE_NAME", "female-english")
 def generate_audio(text_file):
     with open(text_file, "r") as f:
         text = f.read()
-    tts = coqui_tts.TTS(VOICE_NAME)
+
+    tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC", progress_bar=False, gpu=False)
     audio_path = os.path.join(TEMP_DIR, "narration.wav")
     tts.tts_to_file(text=text, file_path=audio_path)
 
