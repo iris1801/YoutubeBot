@@ -16,7 +16,10 @@ def create_thumbnail(title):
     draw = ImageDraw.Draw(blurred)
     font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 64)
 
-    text_width, text_height = draw.textsize(title, font=font)
+    bbox = draw.textbbox((0, 0), title, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+
 
     x = (1280 - text_width) / 2
     y = (720 - text_height) / 2

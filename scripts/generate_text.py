@@ -1,44 +1,38 @@
 import os
 from dotenv import load_dotenv
-from scripts.utils.seo_generator import generate_seo_title_and_description
 
 load_dotenv()
 
-OUTPUT_DIR = os.getenv("TEMP_DIR", "./temp")
+TEMP_DIR = os.getenv("TEMP_DIR", "./temp")
+SCRIPT_PATH = os.path.join(TEMP_DIR, "script.txt")
+TEXT_PATH = os.path.join(TEMP_DIR, "text.txt")
 
-def generate_curiosities():
-    curiosities = []
-    for i in range(1, 11):
-        curiosities.append(f"{i}. {fake_curiosity()}")
-    return curiosities
+def generate_text():
+    text = """10 Incredible Facts About Space!
+1. Some turtles can breathe through their butts.
+2. Honey never spoils.
+3. Your bones are stronger than steel.
+4. There are more stars in the universe than grains of sand on Earth.
+5. Humans share 60% of their DNA with bananas.
+6. The Eiffel Tower can grow taller in the summer.
+7. Octopuses have three hearts.
+8. A day on Venus is longer than a year on Venus.
+9. Bananas are berries, but strawberries are not.
+10. Sharks have been around longer than trees.
+Learn more about our incredible world!
+Hit like and comment your favorite fact!"""
 
-def fake_curiosity():
-    # Funzione finta da rimpiazzare con modello AI locale (LLaMA, GPT4All ecc.)
-    # Qui puoi integrare GPT se vuoi poi migliorarla
-    import random
-    topics = [
-        "Sharks have been around longer than trees.",
-        "Bananas are berries, but strawberries are not.",
-        "Octopuses have three hearts.",
-        "Honey never spoils.",
-        "Humans share 60% of their DNA with bananas.",
-        "The Eiffel Tower can grow taller in the summer.",
-        "Some turtles can breathe through their butts.",
-        "There are more stars in the universe than grains of sand on Earth.",
-        "A day on Venus is longer than a year on Venus.",
-        "Your bones are stronger than steel."
-    ]
-    return random.choice(topics)
+    # Salva TUTTO il testo nel file script.txt (per l'audio)
+    with open(SCRIPT_PATH, "w") as f:
+        f.write(text)
 
-def save_script(title, curiosities, description):
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    with open(os.path.join(OUTPUT_DIR, "script.txt"), "w") as f:
-        f.write(title + "\n\n")
-        for curiosity in curiosities:
-            f.write(curiosity + "\n")
-        f.write("\n" + description)
+    # Salva ogni riga separata nel file text.txt (per i sottotitoli)
+    lines = text.split("\n")
+    with open(TEXT_PATH, "w") as f:
+        for line in lines:
+            f.write(line.strip() + "\n")
 
 if __name__ == "__main__":
-    title, description = generate_seo_title_and_description()
-    curiosities = generate_curiosities()
-    save_script(title, curiosities, description)
+    generate_text()
+    print("[+] Text generated successfully!")
+
