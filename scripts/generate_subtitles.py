@@ -4,7 +4,7 @@ import wave
 
 TEMP_DIR = os.getenv("TEMP_DIR", "./temp")
 AUDIO_PATH = os.path.join(TEMP_DIR, "narration.wav")
-TEXT_PATH = os.path.join(TEMP_DIR, "text.txt")
+TEXT_PATH = os.path.join(TEMP_DIR, "script.txt")
 SUBTITLE_PATH = os.path.join(TEMP_DIR, "subtitles.ass")
 
 def get_audio_duration(audio_path):

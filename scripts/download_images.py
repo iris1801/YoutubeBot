@@ -1,64 +1,64 @@
 import os
-import requests
 import random
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
 
-TEMP_DIR = os.getenv("TEMP_DIR", "./temp")
 PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
-NUM_IMAGES = 13  # numero immagini = numero frasi
+NUMBER_OF_IMAGES = int(os.getenv("NUMBER_OF_IMAGES", 13))
+TEMP_DIR = os.getenv("TEMP_DIR", "./temp")
+PEXELS_IMAGE_QUALITY = os.getenv("PEXELS_IMAGE_QUALITY", "original")
 
-PEXELS_SEARCH_QUERY = "space"  # qui puoi cambiarlo se vuoi (es: "universe", "galaxy")
+HEADERS = {
+    "Authorization": PEXELS_API_KEY
+}
+
+def search_images(query, per_page=80):
+    url = f"https://api.pexels.com/v1/search?query={query}&per_page={per_page}"
+    response = requests.get(url, headers=HEADERS)
+    if response.status_code == 200:
+        return response.json()["photos"]
+    else:
+        print(f"[-] Error searching images: {response.status_code} {response.text}")
+        return []
 
 def download_images():
-    if not PEXELS_API_KEY:
-        raise ValueError("PEXELS_API_KEY mancante nel .env!")
-
     os.makedirs(TEMP_DIR, exist_ok=True)
 
-    headers = {
-        "Authorization": PEXELS_API_KEY
-    }
+    with open(os.path.join(TEMP_DIR, "script.txt"), "r") as f:
+        lines = [line.strip() for line in f if line.strip()]
 
-    response = requests.get(
-        f"https://api.pexels.com/v1/search?query={PEXELS_SEARCH_QUERY}&per_page=30",
-        headers=headers,
-        timeout=10
-    )
+    if not lines:
+        print("[-] No text lines found to search images.")
+        return
 
-    if response.status_code != 200:
-        raise Exception(f"Errore Pexels API: {response.status_code} - {response.text}")
+    search_query = " ".join(lines[0].split()[:3])  # primi 3 vocaboli per cercare
+    photos = search_images(search_query)
 
-    data = response.json()
-    photos = data.get("photos", [])
+    if not photos:
+        print("[-] No images found, trying a fallback search for 'nature'")
+        photos = search_images("nature")  # fallback a qualcosa di generico
 
-    if len(photos) < NUM_IMAGES:
-        raise Exception(f"Non ci sono abbastanza immagini su Pexels per '{PEXELS_SEARCH_QUERY}' (trovate: {len(photos)})")
+    if not photos:
+        print("[-] Still no images found, aborting.")
+        return
 
-    selected_photos = random.sample(photos, NUM_IMAGES)
+    selected_photos = random.sample(photos, min(NUMBER_OF_IMAGES, len(photos)))
 
-    images_list_path = os.path.join(TEMP_DIR, "images_list.txt")
-    with open(images_list_path, "w") as list_file:
+    with open(os.path.join(TEMP_DIR, "images_list.txt"), "w") as f_list:
         for idx, photo in enumerate(selected_photos):
-            img_url = photo["src"]["landscape"]  # 1280x720-ish proporzioni
-            img_path = os.path.join(TEMP_DIR, f"img_{idx:03d}.jpg")
-
+            img_url = photo["src"].get(PEXELS_IMAGE_QUALITY) or photo["src"]["original"]
+            img_path = os.path.join(TEMP_DIR, f"img_{idx}.jpg")
             try:
-                img_data = requests.get(img_url, timeout=10).content
-                with open(img_path, "wb") as f:
-                    f.write(img_data)
-                print(f"[+] Downloaded {img_path}")
-                list_file.write(f"file '{img_path}'\n")
-                list_file.write("duration 3\n")
+                img_data = requests.get(img_url).content
+                with open(img_path, "wb") as handler:
+                    handler.write(img_data)
+                f_list.write(f"file '{img_path}'\n")
             except Exception as e:
-                print(f"[-] Errore scaricando immagine {idx}: {e}")
-                raise SystemExit("[X] Fatal: Errore durante il download immagini.")
+                print(f"[-] Failed to download image {idx}: {e}")
 
-        # Duplichiamo ultima immagine senza durata per chiudere bene il video
-        list_file.write(f"file '{img_path}'\n")
+    print("[+] Images downloaded and images_list.txt created successfully!")
 
 if __name__ == "__main__":
     download_images()
-    print("[+] Immagini scaricate da Pexels e images_list.txt creato con successo!")
-

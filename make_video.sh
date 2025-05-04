@@ -21,7 +21,7 @@ echo "[+] Generating subtitles..."
 python3 scripts/generate_subtitles.py
 
 echo "[+] Creating video..."
-python3 scripts/create_video.py
+python3 scripts/create_video.py || { echo "[-] create_video.py failed"; exit 1; }
 
 echo "[+] Cleaning temp folder..."
 python3 scripts/clean_temp.py

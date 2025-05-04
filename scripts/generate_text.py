@@ -1,38 +1,60 @@
 import os
+import random
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
 
+# Caricamento delle variabili di ambiente
 TEMP_DIR = os.getenv("TEMP_DIR", "./temp")
-SCRIPT_PATH = os.path.join(TEMP_DIR, "script.txt")
-TEXT_PATH = os.path.join(TEMP_DIR, "text.txt")
+TEXT_PATH = os.path.join(TEMP_DIR, "script.txt")
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "phi")
+THEMES = os.getenv("THEMES", "space,chemistry,biology,technology,artificial intelligence").split(",")
+
+os.makedirs(TEMP_DIR, exist_ok=True)
+
+def generate_prompt(theme):
+    prompt = (
+        f"Generate a Top 10 list of amazing fun facts about {theme}.\n"
+        "Each fact must be 1 or 2 sentences maximum.\n"
+        "Only return the list, with each fact starting with its number followed by a dot.\n"
+        "No extra introductions or conclusions, no titles.\n"
+        "Everything must be in fluent and correct English."
+    )
+    return prompt
 
 def generate_text():
-    text = """10 Incredible Facts About Space!
-1. Some turtles can breathe through their butts.
-2. Honey never spoils.
-3. Your bones are stronger than steel.
-4. There are more stars in the universe than grains of sand on Earth.
-5. Humans share 60% of their DNA with bananas.
-6. The Eiffel Tower can grow taller in the summer.
-7. Octopuses have three hearts.
-8. A day on Venus is longer than a year on Venus.
-9. Bananas are berries, but strawberries are not.
-10. Sharks have been around longer than trees.
-Learn more about our incredible world!
-Hit like and comment your favorite fact!"""
+    theme = random.choice(THEMES)
+    prompt = generate_prompt(theme)
+    
+    print(f"[+] Selected theme: {theme}")
 
-    # Salva TUTTO il testo nel file script.txt (per l'audio)
-    with open(SCRIPT_PATH, "w") as f:
+    response = requests.post(
+        f"{OLLAMA_HOST}/api/generate",
+        json={
+            "model": OLLAMA_MODEL,
+            "prompt": prompt,
+            "stream": False,
+        },
+    )
+
+    if response.status_code != 200:
+        print("[-] Error generating text with Ollama.")
+        print(response.text)
+        exit(1)
+
+    result = response.json()
+    text = result.get("response", "").strip()
+
+    if not text:
+        print("[-] No text generated!")
+        exit(1)
+
+    with open(TEXT_PATH, "w", encoding="utf-8") as f:
         f.write(text)
 
-    # Salva ogni riga separata nel file text.txt (per i sottotitoli)
-    lines = text.split("\n")
-    with open(TEXT_PATH, "w") as f:
-        for line in lines:
-            f.write(line.strip() + "\n")
+    print("[+] Text generated and saved successfully!")
 
 if __name__ == "__main__":
     generate_text()
-    print("[+] Text generated successfully!")
-
